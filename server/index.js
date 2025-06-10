@@ -5,9 +5,6 @@ const path = require("path");
 const { google } = require('googleapis');
 const fs = require('fs');
 require("dotenv").config({ path: path.resolve(__dirname, '../.env') });
-console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
-console.log("GOOGLE_REDIRECT_URI:", process.env.GOOGLE_REDIRECT_URI);
 
 const {
   getAuthUrl,
@@ -28,7 +25,6 @@ let zohoTokens = null;        // Zoho tokens
 // Google OAuth endpoint
 app.get("/auth", (req, res) => {
   const url = getAuthUrl();
-  console.log("Generated Google Auth URL:", url);
   res.redirect(url);
 });
 
@@ -207,7 +203,6 @@ app.get("/zoho/oauth2callback", async (req, res) => {
         }
       });
       const orgData = await orgRes.json();
-      console.log("Zoho organizations API response:", JSON.stringify(orgData)); // <-- Add this line
       let orgId = null;
       if (orgData.organizations && orgData.organizations.length > 0) {
         const defaultOrg = orgData.organizations.find(o => o.is_default_org) || orgData.organizations[0];
@@ -215,7 +210,6 @@ app.get("/zoho/oauth2callback", async (req, res) => {
       }
       // Store both tokens and orgId in memory (or session/db for multi-user)
       zohoTokens = { ...data, org_id: orgId };
-      console.log("Fetched Zoho Books Organization ID:", orgId); // <-- Add this line
       // Instead of redirect, send a script to close the popup and notify parent
       return res.send(`
         <html>
@@ -272,7 +266,6 @@ app.get("/zoho/modules", async (req, res) => {
       }
     });
     const data = await response.json();
-    console.log("Zoho /settings/modules API response:", JSON.stringify(data));
     let modules = (data.modules || [])
       .filter(m => m.is_active && m.api_name)
       .map(m => ({
@@ -671,11 +664,9 @@ app.post('/write-chart', ensureTokens, async (req, res) => {
         requests: [addChartRequest]
       }
     });
-    console.log("Chart batchUpdate response:", JSON.stringify(chartResponse.data));
 
     res.json({ message: "Chart created successfully!" });
   } catch (err) {
-    console.error("write-chart error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -695,7 +686,6 @@ app.get("/google/sheets", async (req, res) => {
     });
     res.json({ sheets: result.data.files });
   } catch (err) {
-    console.error("Error in /google/sheets:", err);
     res.status(500).json({ error: "Failed to list sheets", details: err.message });
   }
 });
@@ -719,5 +709,5 @@ app.get("/", (req, res) => res.redirect("/app/widget.html"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  // console.log(`✅ Server running on http://localhost:${PORT}`);
 });
