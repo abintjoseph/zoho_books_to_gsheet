@@ -634,7 +634,7 @@
 
       // Check backend status for session persistence
       if (!localStorage.getItem("zohoAuthenticated")) {
-        fetch("http://localhost:5000/zoho/status")
+        fetch("https://zohobookstogsheet-production.up.railway.app/zoho/status")
           .then(res => res.json())
           .then (data => {
             if (data.authenticated) {
@@ -645,7 +645,7 @@
           });
       }
       if (!localStorage.getItem("googleAccessToken")) {
-        fetch("http://localhost:5000/google/status")
+        fetch("https://zohobookstogsheet-production.up.railway.app/google/status")
           .then(res => res.json())
           .then(data => {
             if (data.authenticated) {
@@ -666,7 +666,7 @@
         const left = (screen.width / 2) - (width / 2);
         const top = (screen.height / 2) - (height / 2);
         window.open(
-          'http://localhost:5000/auth',
+          'https://zohobookstogsheet-production.up.railway.app/auth',
           'GoogleAuthPopup',
           `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars`
         );
@@ -677,13 +677,13 @@
         const left = (screen.width / 2) - (width / 2);
         const top = (screen.height / 2) - (height / 2);
         window.open(
-          'http://localhost:5000/zoho/auth',
+          'https://zohobookstogsheet-production.up.railway.app/zoho/auth',
           'ZohoAuthPopup',
           `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars`
         );
       };
       document.getElementById("logout-btn").onclick = async () => {
-        await fetch("http://localhost:5000/logout", { method: "POST" });
+        await fetch("https://zohobookstogsheet-production.up.railway.app/logout", { method: "POST" });
         localStorage.clear();
         location.reload();
       };
@@ -759,7 +759,7 @@
     }
 
     function fetchModules() {
-      fetch("http://localhost:5000/zoho/modules")
+      fetch("https://zohobookstogsheet-production.up.railway.app/zoho/modules")
         .then(res => res.json())
         .then(data => {
           const modules = data.modules || [];
@@ -784,7 +784,7 @@
     }
 
     function fetchGoogleSheets() {
-      fetch("http://localhost:5000/google/sheets")
+      fetch("https://zohobookstogsheet-production.up.railway.app/google/sheets")
         .then(res => res.json())
         .then(data => {
           googleSheets = data.sheets || [];
@@ -809,7 +809,7 @@
       const selectedModule = document.getElementById("moduleSelect").value;
       const status = document.getElementById("statusFilter")?.value;
       // Removed page input
-      let url = `http://localhost:5000/zoho/data/${selectedModule}`;
+      let url = `https://zohobookstogsheet-production.up.railway.app/zoho/data/${selectedModule}`;
       const params = [];
       if (status) params.push(`status=${encodeURIComponent(status)}`);
       // No page param
@@ -1081,7 +1081,7 @@
         sendBtn.disabled = true;
 
         if (option === "new") {
-          const createRes = await fetch("http://localhost:5000/create-sheet", {
+          const createRes = await fetch("https://zohobookstogsheet-production.up.railway.app/create-sheet", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ sheetTitle: sheetName })
@@ -1097,7 +1097,7 @@
           return;
         }
         // --- Fetch existing row count before writing ---
-        const rowRes = await fetch(`http://localhost:5000/sheet-row-count?spreadsheetId=${spreadsheetId}`);
+        const rowRes = await fetch(`https://zohobookstogsheet-production.up.railway.app/sheet-row-count?spreadsheetId=${spreadsheetId}`);
         const { rowCount: existingRowCount } = await rowRes.json();
 
         const headers = Object.keys(filteredData[0]);
@@ -1121,7 +1121,7 @@
         const chartType = document.getElementById("chartTypeSelect").value;
         const xField = document.getElementById("xFieldSelect").value;
         const yField = document.getElementById("yFieldSelect").value;
-        const writeRes = await fetch("http://localhost:5000/write-data", {
+        const writeRes = await fetch("https://zohobookstogsheet-production.up.railway.app/write-data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1149,7 +1149,7 @@
           const chartRows = filteredData.map(row => [row[xField], Number(row[yField]) || 0]);
           const chartData = [chartHeaders, ...chartRows];
 
-          await fetch("http://localhost:5000/write-chart", {
+          await fetch("https://zohobookstogsheet-production.up.railway.app/write-chart", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
