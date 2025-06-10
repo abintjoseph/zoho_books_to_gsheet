@@ -1,0 +1,20 @@
+{
+  "locale": [
+    "en"
+  ],
+  "service": "FINANCE",
+  "whiteListedDomains": [],
+  "modules": {
+    "widgets": [
+      {
+        "location": "application.allpages.sidebar",
+        "name": "Finance Extension",
+        "url": "/app/widget.html",
+        "logo": "/app/img/logo.png"
+      }
+    ]
+  },
+  "config": [],
+  "usedConnections": [],
+  "content_security_policy": "default-src 'none'; script-src 'self'; connect-src 'self' http://localhost:5000; img-src 'self' http://localhost:5000;"
+}

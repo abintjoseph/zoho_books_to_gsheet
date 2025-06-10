@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zoho Books to Google Sheets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://js.zohostatic.com/zohofinance/v1/zf_sdk.js"></script>
+  <style>
+    :root {
+      --primary: #2a5d9f;
+      --primary-light: #e1e8f0;
+      --primary-dark: #1d406b;
+      --secondary: #27ae60;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --info: #3498db;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 24px auto;
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 0;
+        border-radius: 0;
+        padding: 20px;
+      }
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 28px;
+      font-weight: 600;
+      font-size: 28px;
+      position: relative;
+      padding-bottom: 12px;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px;
+    }
+
+    h3 {
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-weight: 500;
+      font-size: 20px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .auth-section {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button i {
+      font-size: 0.9em;
+    }
+
+    #logout-btn {
+      background: var(--danger);
+      margin-left: 0;
+    }
+
+    #logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .status {
+      text-align: center;
+      margin-bottom: 16px;
+      font-weight: 500;
+      min-height: 22px;
+      padding: 10px;
+      border-radius: var(--border-radius);
+    }
+
+    .status.error {
+      color: var(--danger);
+      background-color: rgba(231, 76, 60, 0.1);
+    }
+
+    .status.success {
+      color: var(--secondary);
+      background-color: rgba(39, 174, 96, 0.1);
+    }
+
+    .section {
+      margin: 28px 0;
+      padding: 20px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    label {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      display: block;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    select, input[type="text"], input[type="number"] {
+      font-size: 1rem;
+      padding: 10px 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ced4da;
+      width: 100%;
+      margin-bottom: 16px;
+      transition: var(--transition);
+      background-color: #fff;
+    }
+
+    select:focus, input[type="text"]:focus, input[type="number"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.2rem rgba(42, 93, 159, 0.25);
+      outline: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+
+    th {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover td {
+      background-color: rgba(42, 93, 159, 0.03);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .flex-item {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .sheet-options {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-options label {
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .sheet-options input[type="radio"] {
+      margin: 0;
+    }
+
+    .csv-btn {
+      background: var(--secondary);
+    }
+
+    .csv-btn:hover {
+      background: #219653;
+    }
+
+    .graph-section {
+      margin: 28px 0;
+      background: #f8fafc;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      border: 1px solid #e1e8f0;
+    }
+
+    #dataChart {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 400px;
+      margin-top: 20px;
+    }
+
+    #sheetLinks {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+    }
+
+    #sheetLinks div {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    #sheetLinks div:last-child {
+      margin-bottom: 0;
+    }
+
+    #sheetLinks span {
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    #sheetLinks a {
+      color: var(--primary);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    #sheetLinks a:hover {
+      text-decoration: underline;
+    }
+
+    #sheetLinks button {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: var(--gray);
+    }
+
+    #sheetLinks button:hover {
+      background: #5a6268;
+    }
+
+    .loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .flex-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .flex-item {
+        width: 100%;
+      }
+
+      .sheet-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      th, td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .section {
+        padding: 16px;
+      }
+    }
+
+    /* Tooltip styles */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.85rem;
+      font-weight: normal;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav id="navbar" class="hidden">
+      <button id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </nav>
+    <h2><i class="fas fa-exchange-alt"></i> Zoho Books → Google Sheets</h2>
+
+    <div class="auth-section" id="authSection">
+      <button id="google-auth-btn"><i class="fab fa-google"></i> Connect with Google</button>
+      <button id="zoho-auth-btn"><i class="fas fa-book"></i> Connect with Zoho</button>
+    </div>
+    <div id="auth-status" class="status"></div>
+    <div id="zoho-auth-status" class="status"></div>
+
+    <div class="section hidden" id="mainSection">
+      <div class="flex-row">
+        <div class="flex-item">
+          <label for="moduleSelect">Select Module:</label>
+          <select id="moduleSelect" aria-label="Select Zoho Books Module">
+            <option>Loading...</option>
+          </select>
+        </div>
+        <div class="flex-item">
+          <label for="statusFilter">Status:</label>
+          <select id="statusFilter">
+            <option value="">All</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="partially_paid">Partially Paid</option>
+            <option value="void">Void</option>
+            <option value="viewed">Viewed</option>
+          </select>
+        </div>
+        <div class="flex-item">
+          <button id="fetchBtn" style="width:100%;"><i class="fas fa-download"></i> Fetch Data</button>
+        </div>
+      </div>
+
+      <div class="flex-row" style="margin-top:16px;">
+        <div class="flex-item">
+          <input type="text" id="filterField" placeholder="Filter by any field..." aria-label="Filter data" />
+        </div>
+        <div class="flex-item">
+          <button id="applyFilterBtn" style="width:100%;"><i class="fas fa-filter"></i> Apply Filter</button>
+        </div>
+        <div class="flex-item">
+          <button id="downloadCsvBtn" class="csv-btn" style="width:100%;"><i class="fas fa-file-csv"></i> Download CSV</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table id="data-table" class="hidden" aria-label="Fetched Data Table">
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div id="googleSheetSection" class="section hidden">
+        <h3><i class="fas fa-file-excel"></i> Export to Google Sheet</h3>
+        <div class="sheet-options">
+          <label>
+            <input type="radio" name="sheetOption" value="existing" checked />
+            Select Existing Sheet
+          </label>
+          <select id="existingSheetList" style="min-width:200px;"></select>
+          <label>
+            <input type="radio" name="sheetOption" value="new" />
+            Create New Sheet
+          </label>
+          <input type="text" id="sheetName" placeholder="Enter new sheet name" aria-label="New sheet name" style="display:none;" />
+        </div>
+        <button id="sendToSheetBtn"><i class="fas fa-paper-plane"></i> Export Filtered Data</button>
+      </div>
+
+      <div id="sheetLinks" class="hidden" style="margin-top:16px;">
+        <div>
+          <span><i class="fas fa-link"></i> Sheet Link: </span>
+          <a id="sheetUrl" href="#" target="_blank"></a>
+          <button onclick="copySheetUrl()"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+        <div>
+          <span><i class="fab fa-google-drive"></i> Drive Link: </span>
+          <a id="driveUrl" href="#" target="_blank"></a>
+          <button onclick="copyDriveUrl()"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+      </div>
+
+      <div class="graph-section hidden" id="graphSection">
+        <h3><i class="fas fa-chart-bar"></i> Visualize Data</h3>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="includeChartCheckbox" checked>
+          Include Chart in Export
+        </label>
+        <div class="flex-row" style="gap:12px; margin-top: 16px;">
+          <div class="flex-item">
+            <label for="chartTypeSelect">Chart Type:</label>
+            <select id="chartTypeSelect">
+              <option value="bar">Bar</option>
+              <option value="pie">Pie</option>
+              <option value="line">Line</option>
+              <option value="doughnut">Doughnut</option>
+              <option value="radar">Radar</option>
+              <option value="polarArea">Polar Area</option>
+              <option value="scatter">Scatter</option>
+            </select>
+          </div>
+          <div class="flex-item">
+            <label for="xFieldSelect">X Axis Field:</label>
+            <select id="xFieldSelect"></select>
+          </div>
+          <div class="flex-item">
+            <label for="yFieldSelect">Y Axis Field:</label>
+            <select id="yFieldSelect"></select>
+          </div>
+          <div class="flex-item">
+            <label for="chartNameInput">Chart Name:</label>
+            <input type="text" id="chartNameInput" placeholder="Chart Title" />
+          </div>
+        </div>
+        <button id="previewChartBtn" style="margin-top:8px;"><i class="fas fa-eye"></i> Preview Chart</button>
+        <canvas id="dataChart" height="120" style="margin-top:16px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- Add this just before </body> -->
+  <div id="toast" style="
+    visibility:hidden;
+    min-width:220px;
+    background:#333;
+    color:#fff;
+    text-align:center;
+    border-radius:8px;
+    padding:16px;
+    position:fixed;
+    z-index:9999;
+    left:50%;
+    bottom:40px;
+    font-size:1rem;
+    transform:translateX(-50%);
+    transition:visibility 0s, opacity 0.3s linear;
+    opacity:0;
+  "></div>
+
+  <script>
+    let appContext, rawData = [], filteredData = [];
+    let googleAccessToken = null;
+    let googleSheets = [];
+
+    function isAuthed() {
+      return localStorage.getItem("googleAccessToken") && localStorage.getItem("zohoAuthenticated");
+    }
+
+    // --- Add this listener for popup OAuth ---
+    window.addEventListener("message", function(event) {
+      if (event.data && event.data.type === "google-auth-success") {
+        localStorage.setItem("googleAccessToken", "authed");
+        showAuthStatus("Google authentication successful!", false);
+        showMainUI();
+        fetchGoogleSheets();
+      }
+      if (event.data && event.data.type === "google-auth-fail") {
+        localStorage.removeItem("googleAccessToken");
+        showAuthStatus("Google authentication failed.", true);
+      }
+      if (event.data && event.data.type === "zoho-auth-success") {
+        localStorage.setItem("zohoAuthenticated", "true");
+        showZohoStatus("Zoho Books authentication successful!", false);
+        showMainUI();
+        fetchModules();
+      }
+      if (event.data && event.data.type === "zoho-auth-fail") {
+        localStorage.removeItem("zohoAuthenticated");
+        showZohoStatus("Zoho Books authentication failed.", true);
+      }
+    });
+
+    window.onload = async function () {
+      ZFAPPS.extension.init().then(App => { appContext = App; });
+
+      // Parse OAuth code from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const googleStatus = urlParams.get("google");
+      const zohoStatus = urlParams.get("zoho");
+
+      // Google Auth
+      googleAccessToken = localStorage.getItem("googleAccessToken");
+      if (googleStatus === "success") {
+        localStorage.setItem("googleAccessToken", "authed");
+        showAuthStatus("Google authentication successful!", false);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (googleStatus === "fail") {
+        localStorage.removeItem("googleAccessToken");
+        showAuthStatus("Google authentication failed.", true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (googleAccessToken) {
+        // Don't show toast on reload
+      }
+
+      // Zoho Auth
+      if (zohoStatus === "success") {
+        localStorage.setItem("zohoAuthenticated", "true");
+        showZohoStatus("Zoho Books authentication successful!", false);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (zohoStatus === "fail") {
+        localStorage.removeItem("zohoAuthenticated");
+        showZohoStatus("Zoho Books authentication failed.", true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (localStorage.getItem("zohoAuthenticated") === "true") {
+        // Don't show toast on reload
+      }
+
+      // Check backend status for session persistence
+      if (!localStorage.getItem("zohoAuthenticated")) {
+        fetch("http://localhost:5000/zoho/status")
+          .then(res => res.json())
+          .then (data => {
+            if (data.authenticated) {
+              localStorage.setItem("zohoAuthenticated", "true");
+              showZohoStatus("Already signed in with Zoho Books", false);
+              showMainUI();
+            }
+          });
+      }
+      if (!localStorage.getItem("googleAccessToken")) {
+        fetch("http://localhost:5000/google/status")
+          .then(res => res.json())
+          .then(data => {
+            if (data.authenticated) {
+              localStorage.setItem("googleAccessToken", "authed");
+              showAuthStatus("Already signed in with Google", false);
+              showMainUI();
+            }
+          });
+      }
+
+      // Show main UI if both authed
+      showMainUI();
+
+      // Auth buttons
+      document.getElementById("google-auth-btn").onclick = () => {
+        // Open Google consent screen in a popup window
+        const width = 500, height = 700;
+        const left = (screen.width / 2) - (width / 2);
+        const top = (screen.height / 2) - (height / 2);
+        window.open(
+          'http://localhost:5000/auth',
+          'GoogleAuthPopup',
+          `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars`
+        );
+      };
+      document.getElementById("zoho-auth-btn").onclick = () => {
+        // Open Zoho consent screen in a popup window (like Google)
+        const width = 500, height = 700;
+        const left = (screen.width / 2) - (width / 2);
+        const top = (screen.height / 2) - (height / 2);
+        window.open(
+          'http://localhost:5000/zoho/auth',
+          'ZohoAuthPopup',
+          `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars`
+        );
+      };
+      document.getElementById("logout-btn").onclick = async () => {
+        await fetch("http://localhost:5000/logout", { method: "POST" });
+        localStorage.clear();
+        location.reload();
+      };
+
+      document.getElementById("fetchBtn").onclick = fetchDataFromModule;
+      document.getElementById("applyFilterBtn").onclick = applyFilter;
+      document.getElementById("downloadCsvBtn").onclick = downloadCSV;
+      document.getElementById("sendToSheetBtn").onclick = sendToGoogleSheet;
+
+      document.querySelectorAll('input[name="sheetOption"]').forEach(el =>
+        el.addEventListener("change", () => {
+          const option = document.querySelector('input[name="sheetOption"]:checked').value;
+          document.getElementById("sheetName").style.display = option === "new" ? "block" : "none";
+          document.getElementById("existingSheetList").style.display = option === "existing" ? "block" : "none";
+        })
+      );
+      // Initialize visibility on load
+      window.addEventListener("DOMContentLoaded", () => {
+        const option = document.querySelector('input[name="sheetOption"]:checked').value;
+        document.getElementById("sheetName").style.display = option === "new" ? "block" : "none";
+        document.getElementById("existingSheetList").style.display = option === "existing" ? "block" : "none";
+      });
+
+      // Load Google Sheets list if authed
+      if (localStorage.getItem("googleAccessToken")) {
+        fetchGoogleSheets();
+      }
+    };
+
+    // Toast utility
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.background = isError ? "#e74c3c" : "#27ae60";
+      toast.style.visibility = "visible";
+      toast.style.opacity = "1";
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.visibility = "hidden";
+      }, 2500);
+    }
+
+    // Hide status messages (not used anymore)
+    function showAuthStatus(message, isError) {
+      document.getElementById("auth-status").textContent = "";
+      document.getElementById("auth-status").className = "status";
+      if (message) showToast(message, isError);
+    }
+    function showZohoStatus(message, isError) {
+      document.getElementById("zoho-auth-status").textContent = "";
+      document.getElementById("zoho-auth-status").className = "status";
+      if (message) showToast(message, isError);
+    }
+
+    // Update showMainUI to hide buttons after sign-in
+    function showMainUI() {
+      const googleAuthed = !!localStorage.getItem("googleAccessToken");
+      const zohoAuthed = !!localStorage.getItem("zohoAuthenticated");
+      const authed = googleAuthed && zohoAuthed;
+
+      document.getElementById("authSection").classList.toggle("hidden", authed);
+      document.getElementById("mainSection").classList.toggle("hidden", !authed);
+      document.getElementById("navbar").classList.toggle("hidden", !authed);
+
+      // Hide Google button if authed
+      document.getElementById("google-auth-btn").style.display = googleAuthed ? "none" : "inline-block";
+      // Hide Zoho button if authed
+      document.getElementById("zoho-auth-btn").style.display = zohoAuthed ? "none" : "inline-block";
+
+      // Always try to fetch modules if Zoho is authed
+      if (zohoAuthed) fetchModules();
+      if (googleAuthed) fetchGoogleSheets();
+    }
+
+    function fetchModules() {
+      fetch("http://localhost:5000/zoho/modules")
+        .then(res => res.json())
+        .then(data => {
+          const modules = data.modules || [];
+          const moduleSelect = document.getElementById("moduleSelect");
+          moduleSelect.innerHTML = "";
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.textContent = "Select a module";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          moduleSelect.appendChild(defaultOption);
+          modules.forEach(module => {
+            const option = document.createElement("option");
+            option.value = module.value;
+            option.textContent = module.label;
+            moduleSelect.appendChild(option);
+          });
+        })
+        .catch(err => {
+          alert("Failed to fetch modules: " + err);
+        });
+    }
+
+    function fetchGoogleSheets() {
+      fetch("http://localhost:5000/google/sheets")
+        .then(res => res.json())
+        .then(data => {
+          googleSheets = data.sheets || [];
+          const select = document.getElementById("existingSheetList");
+          select.innerHTML = "";
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.textContent = "Select a sheet";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          select.appendChild(defaultOption);
+          googleSheets.forEach(sheet => {
+            const option = document.createElement("option");
+            option.value = sheet.id;
+            option.textContent = sheet.name;
+            select.appendChild(option);
+          });
+        });
+    }
+
+    function fetchDataFromModule() {
+      const selectedModule = document.getElementById("moduleSelect").value;
+      const status = document.getElementById("statusFilter")?.value;
+      // Removed page input
+      let url = `http://localhost:5000/zoho/data/${selectedModule}`;
+      const params = [];
+      if (status) params.push(`status=${encodeURIComponent(status)}`);
+      // No page param
+      if (params.length) url += "?" + params.join("&");
+
+      // Show loading state
+      const fetchBtn = document.getElementById("fetchBtn");
+      fetchBtn.classList.add("loading");
+      fetchBtn.disabled = true;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(res => {
+          rawData = res.data || [];
+          filteredData = rawData;
+          if (!Array.isArray(rawData) || rawData.length === 0) {
+            alert("No data found for the selected module.");
+            document.getElementById("data-table").classList.add("hidden");
+            document.getElementById("googleSheetSection").classList.add("hidden");
+            document.getElementById("graphSection").classList.add("hidden");
+            return;
+          }
+          renderTable(filteredData);
+          updateChartFieldSelectors();
+          document.getElementById("googleSheetSection").classList.remove("hidden");
+          document.getElementById("graphSection").classList.remove("hidden");
+          renderGraph(filteredData);
+        })
+        .catch(err => {
+          alert("Failed to fetch module data: " + JSON.stringify(err));
+        })
+        .finally(() => {
+          fetchBtn.classList.remove("loading");
+          fetchBtn.disabled = false;
+        });
+    }
+
+    function escapeHtml(text) {
+      return text == null ? "" : text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById("data-table");
+      const thead = document.getElementById("tableHead");
+      const tbody = document.getElementById("tableBody");
+
+      if (!data || data.length === 0) {
+        table.classList.add("hidden");
+        return;
+      }
+      table.classList.remove("hidden");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      const headers = Object.keys(data[0]);
+      headers.forEach(key => {
+        const th = document.createElement("th");
+        th.textContent = key;
+        thead.appendChild(th);
+      });
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        headers.forEach(key => {
+          const td = document.createElement("td");
+          td.innerHTML = escapeHtml(row[key]);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function applyFilter() {
+      const query = document.getElementById("filterField").value.trim().toLowerCase();
+      if (!query) {
+        renderTable(rawData);
+        updateChartFieldSelectors();
+        renderGraph(rawData);
+        return;
+      }
+      const filtered = rawData.filter(item =>
+        Object.values(item).some(val => val && val.toString().toLowerCase().includes(query))
+      );
+      renderTable(filtered);
+      updateChartFieldSelectors();
+      renderGraph(filtered);
+    }
+
+    function updateChartFieldSelectors() {
+      const data = filteredData.length ? filteredData : rawData;
+      const xSelect = document.getElementById("xFieldSelect");
+      const ySelect = document.getElementById("yFieldSelect");
+      // Save current selections
+      const prevX = xSelect.value;
+      const prevY = ySelect.value;
+      xSelect.innerHTML = "";
+      ySelect.innerHTML = "";
+      if (!data.length) return;
+      const keys = Object.keys(data[0]);
+      keys.forEach(k => {
+        const optX = document.createElement("option");
+        optX.value = k;
+        optX.textContent = k;
+        xSelect.appendChild(optX);
+        const optY = document.createElement("option");
+        optY.value = k;
+        optY.textContent = k;
+        ySelect.appendChild(optY);
+      });
+      // Restore previous selection if possible
+      if (prevX && keys.includes(prevX)) xSelect.value = prevX;
+      if (prevY && keys.includes(prevY)) ySelect.value = prevY;
+      // If no previous, try to auto-select first string for X and first number for Y
+      if (!xSelect.value && keys.length) xSelect.value = keys[0];
+      if (!ySelect.value && keys.length) {
+        const firstRow = data[0];
+        let foundY = false;
+        keys.forEach(k => {
+          if (!foundY && typeof firstRow[k] === "number") {
+            ySelect.value = k;
+            foundY = true;
+          }
+        });
+        if (!foundY) ySelect.value = keys[0];
+      }
+    }
+
+    function renderGraph(data, opts = {}) {
+      if (!data || data.length === 0) {
+        document.getElementById("graphSection").classList.add("hidden");
+        return;
+      }
+      document.getElementById("graphSection").classList.remove("hidden");
+      updateChartFieldSelectors();
+
+      // Get chart options
+      const chartType = opts.chartType || document.getElementById("chartTypeSelect").value || "bar";
+      const xField = opts.xField || document.getElementById("xFieldSelect").value;
+      const yField = opts.yField || document.getElementById("yFieldSelect").value;
+      const chartName = opts.chartName || document.getElementById("chartNameInput").value || "Chart";
+
+      // Prepare data for chart
+      let labels = [];
+      let values = [];
+      if (xField && yField) {
+        labels = data.map(row => row[xField]);
+        values = data.map(row => Number(row[yField]) || 0);
+      } else {
+        // fallback: count by status
+        const statusCounts = {};
+        data.forEach(row => {
+          const status = row.status || "Unknown";
+          statusCounts[status] = (statusCounts[status] || 0) + 1;
+        });
+        labels = Object.keys(statusCounts);
+        values = Object.values(statusCounts);
+      }
+
+      const ctx = document.getElementById("dataChart").getContext("2d");
+      if (window.dataChartInstance) window.dataChartInstance.destroy();
+      window.dataChartInstance = new Chart(ctx, {
+        type: chartType,
+        data: {
+          labels,
+          datasets: [{
+            label: chartName,
+            data: values,
+            backgroundColor: [
+              "#2a5d9f", "#27ae60", "#e67e22", "#e74c3c", "#8e44ad", "#16a085", "#f39c12",
+              "#2980b9", "#d35400", "#c0392b", "#9b59b6", "#1abc9c", "#f1c40f", "#7f8c8d"
+            ],
+            borderColor: "#2a5d9f",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              display: chartType !== "bar" || labels.length < 10,
+              position: 'right'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Update chart preview on button click
+    document.getElementById("previewChartBtn").onclick = () => {
+      renderGraph(filteredData.length ? filteredData : rawData);
+    };
+
+    // Update chart when field/type changes
+    ["chartTypeSelect", "xFieldSelect", "yFieldSelect", "chartNameInput"].forEach(id => {
+      document.getElementById(id).onchange = () => {
+        renderGraph(filteredData.length ? filteredData : rawData);
+      };
+    });
+
+    // When data is loaded, update selectors and chart
+    function renderTable(data) {
+      const table = document.getElementById("data-table");
+      const thead = document.getElementById("tableHead");
+      const tbody = document.getElementById("tableBody");
+
+      if (!data || data.length === 0) {
+        table.classList.add("hidden");
+        return;
+      }
+      table.classList.remove("hidden");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      const headers = Object.keys(data[0]);
+      headers.forEach(key => {
+        const th = document.createElement("th");
+        th.textContent = key;
+        thead.appendChild(th);
+      });
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        headers.forEach(key => {
+          const td = document.createElement("td");
+          td.innerHTML = escapeHtml(row[key]);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      updateChartFieldSelectors();
+      renderGraph(data);
+    }
+
+    // Export chart to Google Sheet as image (base64 PNG)
+    async function sendToGoogleSheet() {
+      if (!localStorage.getItem("googleAccessToken")) {
+        alert("Please sign in with Google first!");
+        return;
+      }
+      const option = document.querySelector('input[name="sheetOption"]:checked').value;
+      let spreadsheetId = "";
+      let sheetName = document.getElementById("sheetName").value.trim() || "ZohoBooks_Data";
+      if (option === "existing") {
+        spreadsheetId = document.getElementById("existingSheetList").value;
+        if (!spreadsheetId) {
+          alert("Please select an existing Spreadsheet.");
+          return;
+        }
+      }
+      const sendBtn = document.getElementById("sendToSheetBtn");
+      try {
+        // Show loading state
+        sendBtn.classList.add("loading");
+        sendBtn.disabled = true;
+
+        if (option === "new") {
+          const createRes = await fetch("http://localhost:5000/create-sheet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sheetTitle: sheetName })
+          });
+          const createData = await createRes.json();
+          if (!createRes.ok) throw new Error(createData.error || "Sheet creation failed");
+          spreadsheetId = createData.sheet.spreadsheetId;
+          alert("Created new sheet with ID: " + spreadsheetId);
+          fetchGoogleSheets();
+        }
+        if (!Array.isArray(filteredData) || filteredData.length === 0) {
+          alert("No data to send.");
+          return;
+        }
+        // --- Fetch existing row count before writing ---
+        const rowRes = await fetch(`http://localhost:5000/sheet-row-count?spreadsheetId=${spreadsheetId}`);
+        const { rowCount: existingRowCount } = await rowRes.json();
+
+        const headers = Object.keys(filteredData[0]);
+        const rows = [headers];
+        filteredData.forEach(item => {
+          rows.push(
+            headers.map(h => {
+              const val = item[h] || "";
+              // If value is a long number, force as text for Google Sheets
+              if (typeof val === "number" && val.toString().length >= 12) {
+                return "'" + val.toString();
+              }
+              // If value is a string of digits and long, also force as text
+              if (typeof val === "string" && /^\d{12,}$/.test(val)) {
+                return "'" + val;
+              }
+              return val;
+            })
+          );
+        });
+        const chartType = document.getElementById("chartTypeSelect").value;
+        const xField = document.getElementById("xFieldSelect").value;
+        const yField = document.getElementById("yFieldSelect").value;
+        const writeRes = await fetch("http://localhost:5000/write-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            spreadsheetId,
+            rows,
+            chartType,
+            xField,
+            yField
+          })
+        });
+        const writeData = await writeRes.json();
+        if (!writeRes.ok) throw new Error(writeData.error || "Failed to write data");
+        alert(writeData.message || "Data sent to Google Sheet successfully");
+        
+
+        if (document.getElementById("includeChartCheckbox").checked && window.dataChartInstance) {
+          const chartType = document.getElementById("chartTypeSelect").value;
+          const xField = document.getElementById("xFieldSelect").value;
+          const yField = document.getElementById("yFieldSelect").value;
+          const chartName = document.getElementById("chartNameInput").value || "Chart";
+
+          // Prepare only the X and Y columns for the chart, as in Chart.js
+          const chartHeaders = [xField, yField];
+          // FIX: Ensure Y value is always a number for Google Sheets charting
+          const chartRows = filteredData.map(row => [row[xField], Number(row[yField]) || 0]);
+          const chartData = [chartHeaders, ...chartRows];
+
+          await fetch("http://localhost:5000/write-chart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              spreadsheetId,
+              chartType,
+              chartName,
+              chartData // Only X and Y columns, matching Chart.js
+            })
+          });
+        }
+        showSheetLinks(spreadsheetId);
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        // Always remove loading state after export attempt
+        sendBtn.classList.remove("loading");
+        sendBtn.disabled = false;
+      }
+    }
+
+    function showSheetLinks(spreadsheetId) {
+      const sheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}`;
+      const driveUrl = `https://drive.google.com/open?id=${spreadsheetId}`;
+      document.getElementById("sheetUrl").href = sheetUrl;
+      document.getElementById("sheetUrl").textContent = sheetUrl;
+      document.getElementById("driveUrl").href = driveUrl;
+      document.getElementById("driveUrl").textContent = driveUrl;
+      document.getElementById("sheetLinks").classList.remove("hidden");
+    }
+    function copySheetUrl() {
+      navigator.clipboard.writeText(document.getElementById("sheetUrl").href);
+    }
+    function copyDriveUrl() {
+      navigator.clipboard.writeText(document.getElementById("driveUrl").href);
+    }
+
+    function downloadCSV() {
+      if (!filteredData || filteredData.length === 0) {
+        alert("No data to download.");
+        return;
+      }
+      const headers = Object.keys(filteredData[0]);
+      const csvRows = [
+        headers.join(","),
+        ...filteredData.map(row => headers.map(h => `"${(row[h] ?? "").toString().replace(/"/g, '""')}"`).join(","))
+      ];
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "zoho_books_data.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+ 
+  </script>
+</body>
+</html>
