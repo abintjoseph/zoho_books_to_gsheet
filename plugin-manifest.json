@@ -16,5 +16,5 @@
   },
   "config": [],
   "usedConnections": [],
-  "content_security_policy": "default-src 'none'; script-src 'self'; connect-src 'self' http://localhost:5000; img-src 'self' http://localhost:5000;"
+  "content_security_policy": "default-src 'none'; script-src 'self'; connect-src https://zohobookstogsheet-production.up.railway.app; img-src 'self';"
 }
